@@ -1,0 +1,3 @@
+[submodule "src/hw0"]
+	path = src/hw0
+	url = https://github.com/dlsyscourse/hw0
