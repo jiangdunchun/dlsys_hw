@@ -1,3 +1,6 @@
 [submodule "src/hw0"]
 	path = src/hw0
 	url = https://github.com/dlsyscourse/hw0
+[submodule "src/hw1"]
+	path = src/hw1
+	url = https://github.com/dlsyscourse/hw1
