@@ -124,11 +124,11 @@ void softmax_regression_epoch_cpp(const float *X, const unsigned char *y,
             //std::cout << std::endl;
         }
 
-        delete h_hat;
-        delete Iy;
-        delete Z;
-        delete Z_Iy;
-        delete grad;
+        delete[] h_hat;
+        delete[] Iy;
+        delete[] Z;
+        delete[] Z_Iy;
+        delete[] grad;
     }
     /// END YOUR CODE
 }
