@@ -109,30 +109,6 @@ def nn_epoch(X, y, W1, W2, lr=0.1, batch=100):
     """
 
     ### BEGIN YOUR SOLUTION
-    # num_samples = X.shape[0]
-    # W1, W2 = W1.realize_cached_data(), W2.realize_cached_data()
-    # for i in range(0, num_samples, batch):
-    #     X_, y_ = X[i:i+batch], y[i:i+batch]
-
-    #     Z1 = np.maximum(np.dot(X_, W1), 0)
-
-    #     y_hat = np.dot(Z1, W2)
-
-    #     Iy = np.zeros_like(y_hat)
-    #     Iy[np.arange(batch), y_] = 1
-
-    #     G2 = np.exp(y_hat)
-    #     G2 /= np.sum(G2, axis=1, keepdims=True)
-    #     G2 -= Iy
-
-    #     G1 = (Z1 > 0).astype(int) * np.dot(G2, W2.T)
-
-    #     grad_W1 = np.dot(X_.T, G1) / batch
-    #     grad_W2 = np.dot(Z1.T, G2) / batch
-
-    #     W1 -= lr * grad_W1
-    #     W2 -= lr * grad_W2
-    # return ndl.Tensor(W1), ndl.Tensor(W2)
     num_samples, input_dim = X.shape[0], X.shape[1]
     for i in range(0, num_samples, batch):
         X_, y_ = ndl.Tensor(X[i:i+batch], requires_grad=False), y[i:i+batch]
