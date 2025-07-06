@@ -4,3 +4,6 @@
 [submodule "src/hw1"]
 	path = src/hw1
 	url = https://github.com/dlsyscourse/hw1
+[submodule "src/hw2"]
+	path = src/hw2
+	url = https://github.com/dlsyscourse/hw2.git
