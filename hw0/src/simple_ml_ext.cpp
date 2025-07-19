@@ -6,6 +6,33 @@
 namespace py = pybind11;
 
 
+namespace Matrix{
+    template<class T1, class T2>
+    void multi(
+        const T1* m1, const T2* m2,
+        size_t m, size_t r, size_t n,
+        const float* ret) {
+        for (size_t i = 0; i < m; i++) {
+            for (size_t j = 0; j < n; j++) {
+                ret[i*n+j] = 0.;
+                for (size_t k = 0; k < r; k++) ret[i*n+j] += m1[i*r+k] * m2[k*n+j];
+            }
+        }
+    }
+
+    template<class T1, class T2>
+    void sub(
+        const T1* m1, const T2* m2,
+        size_t m, size_t n,
+        const float* ret) {
+        for (size_t i = 0; i < m; i++) {
+            for (size_t j = 0; j < n; j++) {
+                ret[i*n+j] = m1[i*n+j] - m2[i*n+j];
+            }
+        }
+    }
+}
+
 void softmax_regression_epoch_cpp(const float *X, const unsigned char *y,
 								  float *theta, size_t m, size_t n, size_t k,
 								  float lr, size_t batch)
@@ -33,7 +60,76 @@ void softmax_regression_epoch_cpp(const float *X, const unsigned char *y,
      */
 
     /// BEGIN YOUR CODE
+    for (size_t b_ = 0; b_ < m; b_ += batch) {
+        //std::cout << b_ << "----->" << std::endl;
 
+        const float* X_ = X + n * b_;
+        const unsigned char* y_ = y + b_;
+
+        float* h_hat = new float[batch*k]();
+        //std::cout << "y_hat" << std::endl;
+        for (size_t i_ = 0; i_ < batch; i_++) {
+            for (size_t j_ = 0; j_ < k; j_++) {
+                for (size_t k_ = 0; k_ < n; k_++) h_hat[i_*k+j_] += X_[i_*n+k_] * theta[k_*k+j_];
+                //std::cout << h_hat[i_*k+j_] << " ";
+            }
+            //std::cout << std::endl;
+        }
+
+        float* Z = new float[batch*k]();
+        //std::cout << "Z" << std::endl;
+        for (size_t i_ = 0; i_ < batch; i_++) {
+            float sum = 0;
+            for (size_t j_ = 0; j_ < k; j_++) {
+                Z[i_*k+j_] = std::exp(h_hat[i_*k+j_]);
+                sum += Z[i_*k+j_];
+            }
+            for (size_t j_ = 0; j_ < k; j_++) {
+                Z[i_*k+j_] /= sum;
+                //std::cout << Z[i_*k+j_] << " ";
+            }
+            //std::cout << std::endl;
+        }
+
+        unsigned char* Iy = new unsigned char[batch*k]();
+        for (size_t i_ = 0; i_ < batch; i_++) Iy[i_*k+y_[i_]] = 1;
+
+        float* Z_Iy = new float[batch*k]();
+        //std::cout << "Z_Iy" << std::endl;
+        for (size_t i_ = 0; i_ < batch; i_++) {
+            for (size_t j_ = 0; j_ < k; j_++) {
+                Z_Iy[i_*k+j_] = Z[i_*k+j_] - Iy[i_*k+j_];
+                //std::cout << Z_Iy[i_*k+j_] << " ";
+            }
+            //std::cout << std::endl;
+        }
+
+        float* grad = new float[n*k]();
+        //std::cout << "grad" << std::endl;
+        for (size_t i_ = 0; i_ < n; i_++) {
+            for (size_t j_ = 0; j_ < k; j_++) {
+                for (size_t k_ = 0; k_ < batch; k_++) grad[i_*k+j_] += X_[k_*n+i_] * Z_Iy[k_*k+j_];
+                grad[i_*k+j_] /= batch;
+                //std::cout << grad[i_*k+j_] << " ";
+            }
+            //std::cout << std::endl;
+        }
+
+        //std::cout << "theta" << std::endl;
+        for (size_t i_ = 0; i_ < n; i_++) {
+            for (size_t j_ = 0; j_ < k; j_++) {
+                theta[i_*k+j_] -= lr * grad[i_*k+j_];
+                //std::cout << theta[i_*k+j_] << " ";
+            }
+            //std::cout << std::endl;
+        }
+
+        delete[] h_hat;
+        delete[] Iy;
+        delete[] Z;
+        delete[] Z_Iy;
+        delete[] grad;
+    }
     /// END YOUR CODE
 }
 

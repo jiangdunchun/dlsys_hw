@@ -20,7 +20,7 @@ def add(x, y):
         Sum of x + y
     """
     ### BEGIN YOUR CODE
-    pass
+    return x + y
     ### END YOUR CODE
 
 
@@ -48,7 +48,25 @@ def parse_mnist(image_filename, label_filename):
                 for MNIST will contain the values 0-9.
     """
     ### BEGIN YOUR CODE
-    pass
+    with gzip.open(filename=image_filename, mode="rb") as image_file:
+        image_file_content = image_file.read()
+    image_num = np.frombuffer(buffer=image_file_content, dtype=">u4", count=1, offset=4)[0]
+    image_size = np.frombuffer(buffer=image_file_content, dtype=">u4", count=2, offset=8)
+    image_data = np.frombuffer(buffer=image_file_content, dtype=np.uint8, offset=16).reshape(-1, image_size[0]*image_size[1])
+    assert image_num == image_data.shape[0]
+    image_data = image_data.astype(np.float32) / 255.
+    #print(f"{image_filename} {image_num} {image_size[0]}*{image_size[1]} {image_data.shape}")
+
+    with gzip.open(filename=label_filename, mode="rb") as lable_file:
+        lable_file_content = lable_file.read()
+    lable_num = np.frombuffer(buffer=lable_file_content, dtype=">u4", count=1, offset=4)[0]
+    lable_data = np.frombuffer(buffer=lable_file_content, dtype=np.uint8, offset=8)
+    assert lable_num == lable_data.shape[0]
+    #print(f"{label_filename} {image_num} {lable_data.shape}")
+
+    assert image_num == lable_num
+    
+    return image_data, lable_data
     ### END YOUR CODE
 
 
@@ -68,7 +86,13 @@ def softmax_loss(Z, y):
         Average softmax loss over the sample.
     """
     ### BEGIN YOUR CODE
-    pass
+    assert Z.shape[0] == y.shape[0]
+
+    e_Z = np.exp(Z - np.max(Z, axis=1, keepdims=True))
+    e_Z /= np.sum(e_Z, axis=1, keepdims=True)
+
+    losses = -np.log(e_Z[np.arange(Z.shape[0]), y])
+    return np.mean(losses)
     ### END YOUR CODE
 
 
@@ -91,7 +115,21 @@ def softmax_regression_epoch(X, y, theta, lr = 0.1, batch=100):
         None
     """
     ### BEGIN YOUR CODE
-    pass
+    num_samples = X.shape[0]
+    for i in range(0, num_samples, batch):
+        X_, y_ = X[i:i+batch], y[i:i+batch]
+
+        y_hat = np.dot(X_, theta)
+
+        Iy = np.zeros_like(y_hat)
+        Iy[np.arange(batch), y_] = 1
+
+        Z = np.exp(y_hat)
+        Z /= np.sum(Z, axis=1, keepdims=True)
+
+        grad = np.dot(X_.T, Z - Iy) / batch
+
+        theta -= lr * grad
     ### END YOUR CODE
 
 
@@ -118,7 +156,28 @@ def nn_epoch(X, y, W1, W2, lr = 0.1, batch=100):
         None
     """
     ### BEGIN YOUR CODE
-    pass
+    num_samples = X.shape[0]
+    for i in range(0, num_samples, batch):
+        X_, y_ = X[i:i+batch], y[i:i+batch]
+
+        Z1 = np.maximum(np.dot(X_, W1), 0)
+
+        y_hat = np.dot(Z1, W2)
+
+        Iy = np.zeros_like(y_hat)
+        Iy[np.arange(batch), y_] = 1
+
+        G2 = np.exp(y_hat)
+        G2 /= np.sum(G2, axis=1, keepdims=True)
+        G2 -= Iy
+
+        G1 = (Z1 > 0).astype(int) * np.dot(G2, W2.T)
+
+        grad_W1 = np.dot(X_.T, G1) / batch
+        grad_W2 = np.dot(Z1.T, G2) / batch
+
+        W1 -= lr * grad_W1
+        W2 -= lr * grad_W2
     ### END YOUR CODE
 
 
