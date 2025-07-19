@@ -20,7 +20,12 @@ class RandomFlipHorizontal(Transform):
         """
         flip_img = np.random.rand() < self.p
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        assert len(img.shape) == 3
+
+        if not flip_img: 
+            return img
+
+        return np.flip(img, axis=1)
         ### END YOUR SOLUTION
 
 
@@ -38,5 +43,15 @@ class RandomCrop(Transform):
         """
         shift_x, shift_y = np.random.randint(low=-self.padding, high=self.padding+1, size=2)
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        assert len(img.shape) == 3
+
+        H, W = img.shape[0], img.shape[1]
+
+        img_padded = np.zeros_like(img)
+
+        if abs(shift_x) >= H or abs(shift_y) >= W:
+            return img_padded
+
+        img_padded[max(0, -shift_x):min(H - shift_x, H), max(0, -shift_y):min(W - shift_y, W), :] = img[max(0, shift_x):min(H + shift_x, H), max(0, shift_y):min(W + shift_y, W), :]
+        return img_padded
         ### END YOUR SOLUTION
