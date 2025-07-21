@@ -39,6 +39,7 @@ def MLPResNet(
 ):
     ### BEGIN YOUR SOLUTION
     return nn.Sequential(
+        nn.Flatten(), # flatten the mnist data (shape is n*h*w*c) firstly
         nn.Linear(dim, hidden_dim),
         nn.ReLU(),
         *[ResidualBlock(hidden_dim, hidden_dim // 2, norm, drop_prob) for _ in range(num_blocks)],
@@ -52,21 +53,28 @@ def epoch(dataloader, model, opt=None):
     ### BEGIN YOUR SOLUTION
     loss_func = nn.SoftmaxLoss()
 
-    if opt: model.train()
-    else: model.eval()
+    if opt:
+        model.train()
+    else:
+        model.eval()
 
     total_loss, total_err = 0., 0.          
     for X, y in dataloader:
-        if opt: opt.reset_grad()
+        if opt:
+            opt.reset_grad()
 
-        logits = model(X)
-        loss = loss_func(logits, y)
+        y_hat = model(X)
+        loss = loss_func(y_hat, y)
 
         total_loss += loss.numpy() * X.shape[0]
-        total_err += (y.numpy() != logits.numpy().argmax(1)).sum()
+        total_err += (y.numpy() != y_hat.numpy().argmax(1)).sum()
 
-        loss.backward()
-        if opt: opt.step()
+        if opt:
+            loss.backward()
+            opt.step()
+
+        if not opt:
+            print(f"Train Loss: {total_loss:.4f} | Train Error: {total_err}")
 
     return total_err / len(dataloader.dataset), total_loss / len(dataloader.dataset)
     ### END YOUR SOLUTION
@@ -97,11 +105,14 @@ def train_mnist(
     model = MLPResNet(784, hidden_dim)
     opt = optimizer(model.parameters(), lr, weight_decay)
 
+    print("\nstart training------------>")
     for i in range(epochs):
         train_err, train_loss = epoch(train_loader, model, opt)
-        print(i, "/", epochs, ":", train_err, train_loss)
+        print(f"Epoch {i}/{epochs} | Train Loss: {train_loss:.4f} | Train Error: {train_err:.4f}")
 
     test_err, test_loss = epoch(test_loader, model)
+    print(f"end training------------>Test Loss: {test_loss:.4f} | Test Error: {test_err:.4f}")
+
     return train_err, train_loss, test_err, test_loss
     ### END YOUR SOLUTION
 

@@ -45,10 +45,9 @@ class RandomCrop(Transform):
         ### BEGIN YOUR SOLUTION
         assert len(img.shape) == 3
 
-        H, W = img.shape[0], img.shape[1]
-
         img_padded = np.zeros_like(img)
 
+        H, W = img.shape[0], img.shape[1]
         if abs(shift_x) >= H or abs(shift_y) >= W:
             return img_padded
 
