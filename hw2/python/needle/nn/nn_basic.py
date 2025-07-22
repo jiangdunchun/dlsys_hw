@@ -228,7 +228,7 @@ class Dropout(Module):
         ### BEGIN YOUR SOLUTION
         if not self.training: return x
 
-        mask = init.randb(*x.shape, p=self.p)
+        mask = init.randb(*x.shape, p=(1. - self.p))
         return x * mask / (1. - self.p)
         ### END YOUR SOLUTION
 
