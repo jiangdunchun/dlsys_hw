@@ -1,6 +1,7 @@
 """The module.
 """
-from typing import List, Callable, Any
+from functools import reduce
+from typing import List, Callable, Any, Optional, Tuple
 from needle.autograd import Tensor
 from needle import ops
 import needle.init as init
@@ -144,20 +145,15 @@ class Sequential(Module):
 class SoftmaxLoss(Module):
     def forward(self, logits: Tensor, y: Tensor):
         ### BEGIN YOUR SOLUTION
-        assert len(logits.shape) == 2
+        batch_size, num_classes = logits.shape
 
-        batch_size, num_features = logits.shape[0], logits.shape[1]
+        y_one_hot = init.one_hot(num_classes, y)
 
-        y_one_hot = init.one_hot(num_features, y)
-
-        e_Z = ops.exp(logits)
-        sum_Z = e_Z.sum(1).reshape((batch_size, 1))
-        e_Z = e_Z / sum_Z.broadcast_to(e_Z.shape)
-
-        losses = -1. * ops.log((e_Z * y_one_hot).sum(1))
-
+        log_sum_exp_z = ops.logsumexp(logits, axes=1)
+        z = (logits * y_one_hot).sum(axes=1)
+        
         #@TODO: float32 / int = float64
-        return losses.sum() / batch_size
+        return (log_sum_exp_z - z).sum() / batch_size
         ### END YOUR SOLUTION
 
 
@@ -168,10 +164,10 @@ class BatchNorm1d(Module):
         self.eps = eps
         self.momentum = momentum
         ### BEGIN YOUR SOLUTION
-        self.weight = Parameter(init.ones(dim, requires_grad=True))
-        self.bias = Parameter(init.zeros(dim, requires_grad=True))
-        self.running_mean = init.zeros(dim)
-        self.running_var = init.ones(dim)
+        self.weight = Parameter(init.ones(dim, requires_grad=True, device=device, dtype=dtype))
+        self.bias = Parameter(init.zeros(dim, requires_grad=True, device=device, dtype=dtype))
+        self.running_mean = init.zeros(dim, device=device, dtype=dtype)
+        self.running_var = init.ones(dim, device=device, dtype=dtype)
         ### END YOUR SOLUTION
 
     def forward(self, x: Tensor) -> Tensor:
@@ -184,8 +180,8 @@ class BatchNorm1d(Module):
             E_x = x.sum(0).reshape((1, num_features)) / batch_size
             Var_x = ((x - E_x.broadcast_to(x.shape)) ** 2).sum(0).reshape((1, num_features)) / batch_size
 
-            self.running_mean = (1. - self.momentum) * self.running_mean + self.momentum * E_x.reshape(num_features)
-            self.running_var = (1. - self.momentum) * self.running_var + self.momentum * Var_x.reshape(num_features)
+            self.running_mean.data = (1. - self.momentum) * self.running_mean.data + self.momentum * E_x.reshape(num_features)
+            self.running_var.data = (1. - self.momentum) * self.running_var.data + self.momentum * Var_x.reshape(num_features)
         else:
             E_x, Var_x = self.running_mean.reshape((1, num_features)), self.running_var.reshape((1, num_features))
 
@@ -201,8 +197,8 @@ class LayerNorm1d(Module):
         self.dim = dim
         self.eps = eps
         ### BEGIN YOUR SOLUTION
-        self.weight = Parameter(init.ones(dim, requires_grad=True))
-        self.bias = Parameter(init.zeros(dim, requires_grad=True))
+        self.weight = Parameter(init.ones(dim, requires_grad=True, device=device, dtype=dtype))
+        self.bias = Parameter(init.zeros(dim, requires_grad=True, device=device, dtype=dtype))
         ### END YOUR SOLUTION
 
     def forward(self, x: Tensor) -> Tensor:
