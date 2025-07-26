@@ -8,3 +8,6 @@ https://github.com/dlsyscourse/hw1.git 7615447afbb0dd4e20404fb8a77656cc770f4d22
 
 ## hw2
 https://github.com/dlsyscourse/hw2.git 633bad8ac8e52cd40531e94b1a6b6bccae92a102
+
+## hw3
+https://github.com/dlsyscourse/hw3.git c8aa3af
