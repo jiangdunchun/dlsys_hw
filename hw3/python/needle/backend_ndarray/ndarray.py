@@ -247,7 +247,11 @@ class NDArray:
         """
 
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        if prod(self.shape) != prod(new_shape) or not self.is_compact():
+            raise ValueError
+
+        new_strides = NDArray.compact_strides(new_shape)
+        return self.make(new_shape, new_strides, self.device, self._handle, self._offset)
         ### END YOUR SOLUTION
 
     def permute(self, new_axes):
@@ -272,7 +276,10 @@ class NDArray:
         """
 
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        new_shape = [self.shape[new_axes[i]] for i in range(len(new_axes))]
+        new_strides = [self.strides[new_axes[i]] for i in range(len(new_axes))]
+        
+        return self.make(new_shape, tuple(new_strides), self.device, self._handle, self._offset)
         ### END YOUR SOLUTION
 
     def broadcast_to(self, new_shape):
@@ -296,7 +303,13 @@ class NDArray:
         """
 
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        for i in range(len(self.shape)):
+            if self.shape[i] != 1 and self.shape[i] != new_shape[i]:
+                raise ValueError
+
+        new_strides = [self.strides[i] if self.shape[i] == new_shape[i] else 0 for i in range(len(self.shape))]
+
+        return self.make(new_shape, tuple(new_strides), self.device, self._handle, self._offset)
         ### END YOUR SOLUTION
 
     ### Get and set elements
@@ -363,7 +376,15 @@ class NDArray:
         assert len(idxs) == self.ndim, "Need indexes equal to number of dimensions"
 
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        for i in range(len(idxs)):
+            if idxs[i].stop <= idxs[i].start or idxs[i].step < 0:
+                raise ValueError
+
+        new_shape = [((idxs[i].stop - idxs[i].start - 1) // idxs[i].step + 1) for i in range(len(idxs))]
+        new_strides = [self.strides[i] * idxs[i].step for i in range(len(idxs))]
+        new_offset = self._offset + np.sum([idxs[i].start * self.strides[i] for i in range(len(idxs))])
+
+        return self.make(new_shape, tuple(new_strides), self.device, self._handle, new_offset)
         ### END YOUR SOLUTION
 
     def __setitem__(self, idxs, other):
@@ -372,7 +393,7 @@ class NDArray:
         view = self.__getitem__(idxs)
         if isinstance(other, NDArray):
             assert prod(view.shape) == prod(other.shape)
-            self.device.ewise_setitem(
+            self.device.ewise_setitem(                                                                                                                                                  
                 other.compact()._handle,
                 view._handle,
                 view.shape,
