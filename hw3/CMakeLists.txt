@@ -69,8 +69,13 @@ if(CUDA_FOUND)
     CUDA_SELECT_NVCC_ARCH_FLAGS(ARCH_FLAGS 3.7)
   endif()
 
+  list(APPEND CUDA_NVCC_FLAGS "--ftemplate-depth=1024")
+
   # set arch flags properly
-  CUDA_ADD_LIBRARY(ndarray_backend_cuda MODULE src/ndarray_backend_cuda.cu OPTIONS ${ARCH_FLAGS})
+  CUDA_ADD_LIBRARY(ndarray_backend_cuda MODULE src/ndarray_backend_cuda.cu 
+    OPTIONS ${ARCH_FLAGS} 
+    #NVCC_FLAGS ${CUDA_NVCC_FLAGS}
+  )
 
   target_link_libraries(ndarray_backend_cuda ${LINKER_LIBS})
   pybind11_extension(ndarray_backend_cuda)
