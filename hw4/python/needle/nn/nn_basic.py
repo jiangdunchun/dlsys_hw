@@ -179,7 +179,7 @@ class BatchNorm1d(Module):
             E_x = x.sum(0).reshape((1, num_features)) / batch_size
             Var_x = ((x - E_x.broadcast_to(x.shape)) ** 2).sum(0).reshape((1, num_features)) / batch_size
 
-            #@TODO: this code will significantly increase the Tensor's number, which makes the test_optim_adam_z_memory_check_1 failed
+            #@HACK: this code will significantly increase the Tensor's number, which makes the test_optim_adam_z_memory_check_1 failed
             # self.running_mean = (1. - self.momentum) * self.running_mean + self.momentum * E_x.reshape(num_features)
             # self.running_var = (1. - self.momentum) * self.running_var + self.momentum * Var_x.reshape(num_features)
             self.running_mean.data = (1. - self.momentum) * self.running_mean.data + self.momentum * E_x.reshape(num_features)

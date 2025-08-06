@@ -356,6 +356,10 @@ class Tensor(Value):
     def __neg__(self):
         return needle.ops.Negate()(self)
 
+    #@HACK: impl the (scalar - tensor)
+    def __rsub__(self, other):
+        return -(self - other) 
+
     def transpose(self, axes=None):
         return needle.ops.Transpose(axes)(self)
 

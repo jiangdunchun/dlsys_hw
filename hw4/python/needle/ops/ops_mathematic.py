@@ -121,7 +121,7 @@ class EWiseDiv(TensorOp):
     def gradient(self, out_grad, node):
         ### BEGIN YOUR SOLUTION
         lhs, rhs = node.inputs
-        return [out_grad / rhs, out_grad * -1. * lhs * (rhs ** -2.)]
+        return [out_grad / rhs, out_grad * -lhs * (rhs ** -2.)]
         ### END YOUR SOLUTION
 
 
@@ -271,12 +271,12 @@ def matmul(a, b):
 class Negate(TensorOp):
     def compute(self, a):
         ### BEGIN YOUR SOLUTION
-        return -1 * a
+        return -a
         ### END YOUR SOLUTION
 
     def gradient(self, out_grad, node):
         ### BEGIN YOUR SOLUTION
-        return [out_grad * -1.]
+        return [-out_grad]
         ### END YOUR SOLUTION
 
 
@@ -338,12 +338,13 @@ def relu(a):
 class Tanh(TensorOp):
     def compute(self, a):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        return array_api.tanh(a)
         ### END YOUR SOLUTION
 
     def gradient(self, out_grad, node):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        lhs = node.inputs[0]
+        return [out_grad * (1. - (tanh(lhs) ** 2.))]
         ### END YOUR SOLUTION
 
 
