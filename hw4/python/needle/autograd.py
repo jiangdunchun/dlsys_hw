@@ -385,15 +385,15 @@ def compute_gradient_of_variables(output_tensor, out_grad):
     reverse_topo_order = list(reversed(find_topo_sort([output_tensor])))
 
     ### BEGIN YOUR SOLUTION
-    for node in reverse_topo_order:
-        grads = node_to_output_grads_list[node]
-        node.grad = sum(grads)
-        if node.op != None:
-            out_grads = node.op.gradient(node.grad, node)
-            for input, out_grad in zip(node.inputs, out_grads):
-                if input not in node_to_output_grads_list:
-                    node_to_output_grads_list[input] = list()
-                node_to_output_grads_list[input].append(out_grad)
+    for parent in reverse_topo_order:
+        p_grads = node_to_output_grads_list[parent]
+        parent.grad = sum_node_list(p_grads)
+        if parent.op != None:
+            c_grads = parent.op.gradient_as_tuple(parent.grad, parent)
+            for child, c_grad in zip(parent.inputs, c_grads):
+                if child not in node_to_output_grads_list:
+                    node_to_output_grads_list[child] = list()
+                node_to_output_grads_list[child].append(c_grad)
     ### END YOUR SOLUTION
 
 
