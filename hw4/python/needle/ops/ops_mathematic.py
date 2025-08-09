@@ -159,7 +159,11 @@ class Transpose(TensorOp):
             axes[-2], axes[-1] = axes[-1], axes[-2]
         else: 
             axes[self.axes[0]], axes[self.axes[1]] = axes[self.axes[1]], axes[self.axes[0]]
-        return array_api.transpose(a, axes)
+        #@HACK: nd backend doesn't have transpose
+        if BACKEND == "nd":
+            return a.permute(tuple(axes))
+        else:
+            return array_api.transpose(a, axes)
         ### END YOUR SOLUTION
 
     def gradient(self, out_grad, node):

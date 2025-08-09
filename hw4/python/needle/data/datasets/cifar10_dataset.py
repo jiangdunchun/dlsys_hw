@@ -3,6 +3,7 @@ import pickle
 from typing import Iterator, Optional, List, Sized, Union, Iterable, Any
 import numpy as np
 from ..data_basic import Dataset
+import pickle
 
 class CIFAR10Dataset(Dataset):
     def __init__(
@@ -22,7 +23,35 @@ class CIFAR10Dataset(Dataset):
         y - numpy array of labels
         """
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        super().__init__(transforms)
+
+        data_files = []
+        if train:
+            data_files = [
+                os.path.join(base_folder, 'data_batch_1'),
+                os.path.join(base_folder, 'data_batch_2'),
+                os.path.join(base_folder, 'data_batch_3'),
+                os.path.join(base_folder, 'data_batch_4'),
+                os.path.join(base_folder, 'data_batch_5')
+            ]
+        else:
+            data_files = [os.path.join(base_folder, 'test_batch')]
+
+        image_data, lable_data, size = [], [], 0
+        for file in data_files:
+            with open(file, 'rb') as f:
+                batch = pickle.load(f, encoding='latin1')
+            
+            features = batch['data'].reshape((len(batch['data']), 3, 32, 32)) / 255.
+            labels = np.array(batch['labels'])
+
+            assert features.shape[0] == labels.shape[0]
+
+            image_data.append(features)
+            lable_data.append(labels)
+            size += labels.shape[0]
+        
+        self.images, self.labels = np.array(image_data).reshape(size, 3, 32, 32), np.array(lable_data).reshape(size)
         ### END YOUR SOLUTION
 
     def __getitem__(self, index) -> object:
@@ -31,7 +60,8 @@ class CIFAR10Dataset(Dataset):
         Image should be of shape (3, 32, 32)
         """
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        image, label = self.images[index], self.labels[index]
+        return self.apply_transforms(image), label
         ### END YOUR SOLUTION
 
     def __len__(self) -> int:
@@ -39,5 +69,5 @@ class CIFAR10Dataset(Dataset):
         Returns the total number of examples in the dataset
         """
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        return self.images.shape[0]
         ### END YOUR SOLUTION
